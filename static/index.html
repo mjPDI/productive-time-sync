@@ -600,8 +600,8 @@
 
                 let html = `<h2>Configure Month</h2>`;
                 html += `<div class="config-grid">
-    <span class="label">Person</span><span class="value">${esc(c.person_id || c.person_name || "—")}</span>
-    <span class="label">Subsidiary</span><span class="value">${esc(c.subsidiary_id || c.subsidiary || "—")}</span>
+    <span class="label">Person</span><span class="value">${esc(c.person_name || "")}${c.person_name ? " " : ""}(${esc(c.person_id || "—")})</span>
+    <span class="label">Subsidiary</span><span class="value">${esc(c.subsidiary_name || "—")}</span>
     <span class="label">Country</span><span class="value">${esc(c.country_code || c.country || "—")}</span>
   </div>`;
 

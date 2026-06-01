@@ -16,6 +16,7 @@ from sync_time_entries import (
     SUBSIDIARY_NAME,
     WORK_DAY_MINUTES,
     _check_creds,
+    api_get,
     api_get_all,
     build_time_entries,
     create_absence_booking,
@@ -141,8 +142,20 @@ def get_config():
         errors.append(
             "Missing required environment variables (API_TOKEN, ORG_ID, PERSON_ID)"
         )
+
+    person_name = ""
+    try:
+        body = api_get("user")
+        attrs = body.get("data", {}).get("attributes", {})
+        person_name = (
+            f"{attrs.get('first_name', '')} {attrs.get('last_name', '')}".strip()
+        )
+    except Exception:
+        pass
+
     return {
         "person_id": PERSON_ID,
+        "person_name": person_name,
         "subsidiary_name": SUBSIDIARY_NAME,
         "country_code": COUNTRY_CODE,
         "work_day_minutes": WORK_DAY_MINUTES,
