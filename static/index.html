@@ -611,8 +611,7 @@
                 html += `<div id="initResult"></div>`;
 
                 html += `<div class="btn-row"><span></span><div class="btn-row-right">`;
-                html += `<button class="btn-primary" id="initBtn" onclick="doInit()">Initialize</button>`;
-                html += `<button class="btn-primary" id="nextBtn1" disabled onclick="navigate(2)">Next →</button>`;
+                html += `<button class="btn-primary" id="nextBtn1" onclick="doInitAndNext()">Next →</button>`;
                 html += `</div></div>`;
 
                 card.innerHTML = html;
@@ -620,26 +619,24 @@
                 if (state.initData) showInitResult();
             }
 
-            async function doInit() {
+            async function doInitAndNext() {
                 const monthVal = document.getElementById("monthInput").value;
                 state.month = monthVal || null;
-                setLoading(true);
-                document.getElementById("initBtn").innerHTML =
-                    '<span class="spinner"></span> Initializing…';
-                document.getElementById("initResult").innerHTML = "";
+                const btn = document.getElementById("nextBtn1");
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Loading…';
 
                 try {
                     state.initData = await api("POST", "/api/init-month", {
                         month: state.month,
                     });
                     state.month = state.initData.month;
-                    showInitResult();
+                    navigate(2);
                 } catch (e) {
                     document.getElementById("initResult").innerHTML =
                         `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
-                } finally {
-                    setLoading(false);
-                    document.getElementById("initBtn").innerHTML = "Initialize";
+                    btn.disabled = false;
+                    btn.innerHTML = "Next →";
                 }
             }
 
@@ -676,8 +673,6 @@
                 }
 
                 document.getElementById("initResult").innerHTML = html;
-                const nb = document.getElementById("nextBtn1");
-                if (nb) nb.disabled = false;
             }
 
             // --- Step 2: Add Absences ---
