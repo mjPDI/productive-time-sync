@@ -1,628 +1,771 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Time Sync</title>
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Time Sync</title>
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
-:root {
-  --bg: #1a1a2e;
-  --card: #16213e;
-  --primary: #0f3460;
-  --highlight: #e94560;
-  --text: #eee;
-  --muted: #888;
-  --success: #4ecca3;
-  --warning: #ffc857;
-  --error: #e94560;
-  --stripe: rgba(255,255,255,0.03);
-}
+            :root {
+                --bg: #1a1a2e;
+                --card: #16213e;
+                --primary: #0f3460;
+                --highlight: #e94560;
+                --text: #eee;
+                --muted: #888;
+                --success: #4ecca3;
+                --warning: #ffc857;
+                --error: #e94560;
+                --stripe: rgba(255, 255, 255, 0.03);
+            }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 32px 24px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Helvetica, Arial, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 32px 24px;
+                line-height: 1.5;
+                -webkit-font-smoothing: antialiased;
+            }
 
-/* Progress bar */
-.progress-bar {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-bottom: 32px;
-  width: 100%;
-  max-width: 420px;
-}
-.progress-step {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-.progress-step:last-child { flex: 0; }
-.progress-dot {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--primary);
-  border: 2px solid var(--primary);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600;
-  transition: all 0.3s;
-  flex-shrink: 0;
-  color: var(--muted);
-}
-.progress-dot.active {
-  background: var(--highlight);
-  border-color: var(--highlight);
-  color: #fff;
-  box-shadow: 0 0 12px rgba(233,69,96,0.4);
-}
-.progress-dot.done {
-  background: var(--success);
-  border-color: var(--success);
-  color: #fff;
-}
-.progress-line {
-  flex: 1;
-  height: 2px;
-  background: var(--primary);
-  transition: background 0.3s;
-}
-.progress-line.done { background: var(--success); }
+            /* Progress bar */
+            .progress-bar {
+                display: flex;
+                align-items: center;
+                gap: 0;
+                margin-bottom: 32px;
+                width: 100%;
+                max-width: 420px;
+            }
+            .progress-step {
+                display: flex;
+                align-items: center;
+                flex: 1;
+            }
+            .progress-step:last-child {
+                flex: 0;
+            }
+            .progress-dot {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background: var(--primary);
+                border: 2px solid var(--primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 600;
+                transition: all 0.3s;
+                flex-shrink: 0;
+                color: var(--muted);
+            }
+            .progress-dot.active {
+                background: var(--highlight);
+                border-color: var(--highlight);
+                color: #fff;
+                box-shadow: 0 0 12px rgba(233, 69, 96, 0.4);
+            }
+            .progress-dot.done {
+                background: var(--success);
+                border-color: var(--success);
+                color: #fff;
+            }
+            .progress-line {
+                flex: 1;
+                height: 2px;
+                background: var(--primary);
+                transition: background 0.3s;
+            }
+            .progress-line.done {
+                background: var(--success);
+            }
 
-/* Card */
-.card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 32px;
-  width: 100%;
-  max-width: 720px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  position: relative;
-  animation: fadeIn 0.25s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+            /* Card */
+            .card {
+                background: var(--card);
+                border-radius: 12px;
+                padding: 32px;
+                width: 100%;
+                max-width: 720px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+                position: relative;
+                animation: fadeIn 0.25s ease;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
 
-h2 { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
-h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
-p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+            h2 {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 20px;
+            }
+            h3 {
+                font-size: 15px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                color: var(--text);
+            }
+            p {
+                color: var(--muted);
+                font-size: 14px;
+                margin-bottom: 12px;
+            }
 
-/* Buttons */
-button {
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 20px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.btn-primary {
-  background: var(--primary);
-  color: var(--text);
-}
-.btn-primary:hover:not(:disabled) { background: #124a8a; }
-.btn-highlight {
-  background: var(--highlight);
-  color: #fff;
-}
-.btn-highlight:hover:not(:disabled) { background: #d63a54; }
-.btn-secondary {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.btn-secondary:hover:not(:disabled) { border-color: rgba(255,255,255,0.25); color: var(--text); }
-.btn-success {
-  background: var(--success);
-  color: #1a1a2e;
-  font-weight: 600;
-}
-.btn-success:hover:not(:disabled) { background: #3db890; }
+            /* Buttons */
+            button {
+                font-family: inherit;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 8px 20px;
+                border-radius: 6px;
+                border: none;
+                cursor: pointer;
+                transition: all 0.15s;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            button:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+            .btn-primary {
+                background: var(--primary);
+                color: var(--text);
+            }
+            .btn-primary:hover:not(:disabled) {
+                background: #124a8a;
+            }
+            .btn-highlight {
+                background: var(--highlight);
+                color: #fff;
+            }
+            .btn-highlight:hover:not(:disabled) {
+                background: #d63a54;
+            }
+            .btn-secondary {
+                background: transparent;
+                color: var(--muted);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .btn-secondary:hover:not(:disabled) {
+                border-color: rgba(255, 255, 255, 0.25);
+                color: var(--text);
+            }
+            .btn-success {
+                background: var(--success);
+                color: #1a1a2e;
+                font-weight: 600;
+            }
+            .btn-success:hover:not(:disabled) {
+                background: #3db890;
+            }
 
-.btn-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 24px;
-  gap: 8px;
-}
-.btn-row-right { margin-left: auto; display: flex; gap: 8px; }
+            .btn-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 24px;
+                gap: 8px;
+            }
+            .btn-row-right {
+                margin-left: auto;
+                display: flex;
+                gap: 8px;
+            }
 
-/* Inputs */
-input, select, textarea {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.2);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s;
-}
-input:focus, textarea:focus { border-color: var(--highlight); }
-textarea { resize: vertical; min-height: 36px; }
+            /* Inputs */
+            input,
+            select,
+            textarea {
+                font-family: inherit;
+                font-size: 14px;
+                padding: 8px 12px;
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                background: rgba(0, 0, 0, 0.2);
+                color: var(--text);
+                outline: none;
+                transition: border-color 0.15s;
+            }
+            input:focus,
+            textarea:focus {
+                border-color: var(--highlight);
+            }
+            textarea {
+                resize: vertical;
+                min-height: 36px;
+            }
 
-label {
-  font-size: 13px;
-  color: var(--muted);
-  display: block;
-  margin-bottom: 4px;
-}
+            label {
+                font-size: 13px;
+                color: var(--muted);
+                display: block;
+                margin-bottom: 4px;
+            }
 
-.field { margin-bottom: 16px; }
+            .field {
+                margin-bottom: 16px;
+            }
 
-/* Tags / badges */
-.badge {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--primary);
-  color: var(--text);
-}
-.badge-holiday { background: rgba(255,200,87,0.15); color: var(--warning); }
-.badge-absence { background: rgba(78,204,163,0.15); color: var(--success); }
-.badge-error { background: rgba(233,69,96,0.15); color: var(--error); }
+            /* Tags / badges */
+            .badge {
+                display: inline-block;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 2px 8px;
+                border-radius: 4px;
+                background: var(--primary);
+                color: var(--text);
+            }
+            .badge-holiday {
+                background: rgba(255, 200, 87, 0.15);
+                color: var(--warning);
+            }
+            .badge-absence {
+                background: rgba(78, 204, 163, 0.15);
+                color: var(--success);
+            }
+            .badge-error {
+                background: rgba(233, 69, 96, 0.15);
+                color: var(--error);
+            }
 
-/* Tables */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-th {
-  text-align: left;
-  padding: 8px 10px;
-  color: var(--muted);
-  font-weight: 500;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-td {
-  padding: 7px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-}
-tr:nth-child(even) { background: var(--stripe); }
+            /* Tables */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+            th {
+                text-align: left;
+                padding: 8px 10px;
+                color: var(--muted);
+                font-weight: 500;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            }
+            td {
+                padding: 7px 10px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            }
+            tr:nth-child(even) {
+                background: var(--stripe);
+            }
 
-/* Spinner */
-.spinner {
-  display: inline-block;
-  width: 18px; height: 18px;
-  border: 2px solid rgba(255,255,255,0.15);
-  border-top-color: var(--highlight);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+            /* Spinner */
+            .spinner {
+                display: inline-block;
+                width: 18px;
+                height: 18px;
+                border: 2px solid rgba(255, 255, 255, 0.15);
+                border-top-color: var(--highlight);
+                border-radius: 50%;
+                animation: spin 0.6s linear infinite;
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
 
-.spinner-lg {
-  width: 32px; height: 32px;
-  border-width: 3px;
-  margin: 32px auto;
-  display: block;
-}
+            .spinner-lg {
+                width: 32px;
+                height: 32px;
+                border-width: 3px;
+                margin: 32px auto;
+                display: block;
+            }
 
-/* Toast / alert */
-.alert {
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.alert-error { background: rgba(233,69,96,0.12); color: var(--error); }
-.alert-warning { background: rgba(255,200,87,0.12); color: var(--warning); }
-.alert-success { background: rgba(78,204,163,0.12); color: var(--success); }
-.alert-info { background: rgba(15,52,96,0.5); color: var(--text); }
+            /* Toast / alert */
+            .alert {
+                padding: 10px 14px;
+                border-radius: 6px;
+                font-size: 13px;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .alert-error {
+                background: rgba(233, 69, 96, 0.12);
+                color: var(--error);
+            }
+            .alert-warning {
+                background: rgba(255, 200, 87, 0.12);
+                color: var(--warning);
+            }
+            .alert-success {
+                background: rgba(78, 204, 163, 0.12);
+                color: var(--success);
+            }
+            .alert-info {
+                background: rgba(15, 52, 96, 0.5);
+                color: var(--text);
+            }
 
-/* Config info */
-.config-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 16px;
-  font-size: 13px;
-  margin-bottom: 20px;
-  padding: 12px 16px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 8px;
-}
-.config-grid .label { color: var(--muted); }
-.config-grid .value { color: var(--text); font-weight: 500; }
+            /* Config info */
+            .config-grid {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 4px 16px;
+                font-size: 13px;
+                margin-bottom: 20px;
+                padding: 12px 16px;
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 8px;
+            }
+            .config-grid .label {
+                color: var(--muted);
+            }
+            .config-grid .value {
+                color: var(--text);
+                font-weight: 500;
+            }
 
-/* Absence item */
-.absence-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 6px;
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-.absence-item .remove-btn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 16px;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.absence-item .remove-btn:hover { color: var(--error); }
+            /* Absence item */
+            .absence-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 14px;
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 6px;
+                margin-bottom: 6px;
+                font-size: 13px;
+            }
+            .absence-item .remove-btn {
+                background: none;
+                border: none;
+                color: var(--muted);
+                cursor: pointer;
+                font-size: 16px;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+            .absence-item .remove-btn:hover {
+                color: var(--error);
+            }
 
-/* Event cards */
-.event-list {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-.event-card {
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.15);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-  font-size: 13px;
-}
-.event-card:hover { border-color: rgba(255,255,255,0.15); }
-.event-card.selected { border-color: var(--highlight); background: rgba(233,69,96,0.06); }
+            /* Event cards */
+            .event-list {
+                display: grid;
+                gap: 6px;
+                margin-bottom: 16px;
+            }
+            .event-card {
+                padding: 10px 14px;
+                background: rgba(0, 0, 0, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 6px;
+                cursor: pointer;
+                transition: border-color 0.15s;
+                font-size: 13px;
+            }
+            .event-card:hover {
+                border-color: rgba(255, 255, 255, 0.15);
+            }
+            .event-card.selected {
+                border-color: var(--highlight);
+                background: rgba(233, 69, 96, 0.06);
+            }
 
-/* Result items */
-.result-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  font-size: 13px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-}
+            /* Result items */
+            .result-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 0;
+                font-size: 13px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            }
 
-/* Section */
-.section { margin-bottom: 24px; }
-.section:last-child { margin-bottom: 0; }
+            /* Section */
+            .section {
+                margin-bottom: 24px;
+            }
+            .section:last-child {
+                margin-bottom: 0;
+            }
 
-/* Stats grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.stat-card {
-  background: rgba(0,0,0,0.15);
-  border-radius: 8px;
-  padding: 14px;
-  text-align: center;
-}
-.stat-card .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text);
-}
-.stat-card .stat-label {
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
+            /* Stats grid */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            .stat-card {
+                background: rgba(0, 0, 0, 0.15);
+                border-radius: 8px;
+                padding: 14px;
+                text-align: center;
+            }
+            .stat-card .stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--text);
+            }
+            .stat-card .stat-label {
+                font-size: 11px;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 2px;
+            }
 
-.table-wrap {
-  overflow-x: auto;
-  margin-bottom: 16px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.04);
-}
+            .table-wrap {
+                overflow-x: auto;
+                margin-bottom: 16px;
+                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.04);
+            }
 
-/* Add absence form area */
-.add-absence-form {
-  background: rgba(0,0,0,0.12);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
+            /* Add absence form area */
+            .add-absence-form {
+                background: rgba(0, 0, 0, 0.12);
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 16px;
+            }
 
-/* Scrollable area */
-.scroll-area {
-  max-height: 320px;
-  overflow-y: auto;
-}
+            /* Scrollable area */
+            .scroll-area {
+                max-height: 320px;
+                overflow-y: auto;
+            }
 
-/* Done step */
-.done-center {
-  text-align: center;
-  padding: 24px 0;
-}
-.done-center .checkmark {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-</style>
-</head>
-<body>
+            /* Done step */
+            .done-center {
+                text-align: center;
+                padding: 24px 0;
+            }
+            .done-center .checkmark {
+                font-size: 48px;
+                margin-bottom: 16px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="card" id="card"></div>
 
-<div class="progress-bar" id="progressBar"></div>
-<div class="card" id="card"></div>
+        <script>
+            const state = {
+                step: 1,
+                month: null,
+                config: null,
+                initData: null,
+                absences: [],
+                events: null,
+                previewData: null,
+                executeResults: null,
+                loading: false,
+            };
 
-<script>
-const state = {
-  step: 1,
-  month: null,
-  config: null,
-  initData: null,
-  absences: [],
-  events: null,
-  previewData: null,
-  executeResults: null,
-  loading: false,
-};
+            // --- API helper ---
+            async function api(method, path, body) {
+                const opts = {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                };
+                if (body !== undefined) opts.body = JSON.stringify(body);
+                const res = await fetch(path, opts);
+                if (!res.ok) {
+                    let msg = `Request failed (${res.status})`;
+                    try {
+                        const j = await res.json();
+                        msg = j.detail || j.message || msg;
+                    } catch {}
+                    throw new Error(msg);
+                }
+                return res.json();
+            }
 
-// --- API helper ---
-async function api(method, path, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json' } };
-  if (body !== undefined) opts.body = JSON.stringify(body);
-  const res = await fetch(path, opts);
-  if (!res.ok) {
-    let msg = `Request failed (${res.status})`;
-    try { const j = await res.json(); msg = j.detail || j.message || msg; } catch {}
-    throw new Error(msg);
-  }
-  return res.json();
-}
+            // --- Render progress bar ---
+            function renderProgress() {
+                const labels = [
+                    "Month",
+                    "Absences",
+                    "Preview",
+                    "Execute",
+                    "Done",
+                ];
+                let html = "";
+                for (let i = 0; i < labels.length; i++) {
+                    const n = i + 1;
+                    const cls =
+                        n < state.step
+                            ? "done"
+                            : n === state.step
+                              ? "active"
+                              : "";
+                    html += `<div class="progress-step"><div class="progress-dot ${cls}">${n < state.step ? "✓" : n}</div>`;
+                    if (i < labels.length - 1) {
+                        html += `<div class="progress-line ${n < state.step ? "done" : ""}"></div>`;
+                    }
+                    html += `</div>`;
+                }
+                document.getElementById("progressBar").innerHTML = html;
+            }
 
-// --- Render progress bar ---
-function renderProgress() {
-  const labels = ['Month', 'Absences', 'Preview', 'Execute', 'Done'];
-  let html = '';
-  for (let i = 0; i < labels.length; i++) {
-    const n = i + 1;
-    const cls = n < state.step ? 'done' : n === state.step ? 'active' : '';
-    html += `<div class="progress-step"><div class="progress-dot ${cls}">${n < state.step ? '✓' : n}</div>`;
-    if (i < labels.length - 1) {
-      html += `<div class="progress-line ${n < state.step ? 'done' : ''}"></div>`;
-    }
-    html += `</div>`;
-  }
-  document.getElementById('progressBar').innerHTML = html;
-}
+            // --- Navigate ---
+            function navigate(step) {
+                state.step = step;
+                renderProgress();
+                const card = document.getElementById("card");
+                card.style.animation = "none";
+                card.offsetHeight; // reflow
+                card.style.animation = "";
+                const renderers = {
+                    1: renderStep1,
+                    2: renderStep2,
+                    3: renderStep3,
+                    4: renderStep4,
+                    5: renderStep5,
+                };
+                renderers[step]();
+            }
 
-// --- Navigate ---
-function navigate(step) {
-  state.step = step;
-  renderProgress();
-  const card = document.getElementById('card');
-  card.style.animation = 'none';
-  card.offsetHeight; // reflow
-  card.style.animation = '';
-  const renderers = { 1: renderStep1, 2: renderStep2, 3: renderStep3, 4: renderStep4, 5: renderStep5 };
-  renderers[step]();
-}
+            // --- Utility ---
+            function esc(s) {
+                if (s == null) return "";
+                const d = document.createElement("div");
+                d.textContent = String(s);
+                return d.innerHTML;
+            }
 
-// --- Utility ---
-function esc(s) {
-  if (s == null) return '';
-  const d = document.createElement('div');
-  d.textContent = String(s);
-  return d.innerHTML;
-}
+            function formatDate(d) {
+                const dt = new Date(d + "T00:00:00");
+                return dt.toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                });
+            }
 
-function formatDate(d) {
-  const dt = new Date(d + 'T00:00:00');
-  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-}
+            function autoMonth() {
+                const now = new Date();
+                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+            }
 
-function autoMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
+            function setLoading(v) {
+                state.loading = v;
+                document.querySelectorAll("button").forEach((b) => {
+                    if (!b.dataset.alwaysEnabled) b.disabled = v;
+                });
+            }
 
-function setLoading(v) {
-  state.loading = v;
-  document.querySelectorAll('button').forEach(b => {
-    if (!b.dataset.alwaysEnabled) b.disabled = v;
-  });
-}
+            // --- Step 1: Configure Month ---
+            async function renderStep1() {
+                const card = document.getElementById("card");
+                card.innerHTML =
+                    '<h2>Configure Month</h2><div class="spinner spinner-lg"></div><p style="text-align:center">Loading configuration…</p>';
 
-// --- Step 1: Configure Month ---
-async function renderStep1() {
-  const card = document.getElementById('card');
-  card.innerHTML = '<h2>Configure Month</h2><div class="spinner spinner-lg"></div><p style="text-align:center">Loading configuration…</p>';
+                if (!state.config) {
+                    try {
+                        state.config = await api("GET", "/api/config");
+                    } catch (e) {
+                        card.innerHTML = `<h2>Configure Month</h2><div class="alert alert-error">⚠ ${esc(e.message)}</div><div class="btn-row"><span></span><button class="btn-primary" onclick="renderStep1()">Retry</button></div>`;
+                        return;
+                    }
+                }
 
-  if (!state.config) {
-    try {
-      state.config = await api('GET', '/api/config');
-    } catch (e) {
-      card.innerHTML = `<h2>Configure Month</h2><div class="alert alert-error">⚠ ${esc(e.message)}</div><div class="btn-row"><span></span><button class="btn-primary" onclick="renderStep1()">Retry</button></div>`;
-      return;
-    }
-  }
+                if (!state.month) state.month = autoMonth();
+                const c = state.config;
 
-  if (!state.month) state.month = autoMonth();
-  const c = state.config;
-
-  let html = `<h2>Configure Month</h2>`;
-  html += `<div class="config-grid">
-    <span class="label">Person</span><span class="value">${esc(c.person_id || c.person_name || '—')}</span>
-    <span class="label">Subsidiary</span><span class="value">${esc(c.subsidiary_id || c.subsidiary || '—')}</span>
-    <span class="label">Country</span><span class="value">${esc(c.country_code || c.country || '—')}</span>
+                let html = `<h2>Configure Month</h2>`;
+                html += `<div class="config-grid">
+    <span class="label">Person</span><span class="value">${esc(c.person_id || c.person_name || "—")}</span>
+    <span class="label">Subsidiary</span><span class="value">${esc(c.subsidiary_id || c.subsidiary || "—")}</span>
+    <span class="label">Country</span><span class="value">${esc(c.country_code || c.country || "—")}</span>
   </div>`;
 
-  html += `<div class="field"><label>Target Month</label>
+                html += `<div class="field"><label>Target Month</label>
     <input type="month" id="monthInput" value="${esc(state.month)}" style="width:200px" /></div>`;
 
-  html += `<div id="initResult"></div>`;
+                html += `<div id="initResult"></div>`;
 
-  html += `<div class="btn-row"><span></span><div class="btn-row-right">`;
-  html += `<button class="btn-primary" id="initBtn" onclick="doInit()">Initialize</button>`;
-  html += `<button class="btn-primary" id="nextBtn1" disabled onclick="navigate(2)">Next →</button>`;
-  html += `</div></div>`;
+                html += `<div class="btn-row"><span></span><div class="btn-row-right">`;
+                html += `<button class="btn-primary" id="initBtn" onclick="doInit()">Initialize</button>`;
+                html += `<button class="btn-primary" id="nextBtn1" disabled onclick="navigate(2)">Next →</button>`;
+                html += `</div></div>`;
 
-  card.innerHTML = html;
+                card.innerHTML = html;
 
-  if (state.initData) showInitResult();
-}
+                if (state.initData) showInitResult();
+            }
 
-async function doInit() {
-  const monthVal = document.getElementById('monthInput').value;
-  state.month = monthVal || null;
-  setLoading(true);
-  document.getElementById('initBtn').innerHTML = '<span class="spinner"></span> Initializing…';
-  document.getElementById('initResult').innerHTML = '';
+            async function doInit() {
+                const monthVal = document.getElementById("monthInput").value;
+                state.month = monthVal || null;
+                setLoading(true);
+                document.getElementById("initBtn").innerHTML =
+                    '<span class="spinner"></span> Initializing…';
+                document.getElementById("initResult").innerHTML = "";
 
-  try {
-    state.initData = await api('POST', '/api/init-month', { month: state.month });
-    state.month = state.initData.month;
-    showInitResult();
-  } catch (e) {
-    document.getElementById('initResult').innerHTML = `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
-  } finally {
-    setLoading(false);
-    document.getElementById('initBtn').innerHTML = 'Initialize';
-  }
-}
+                try {
+                    state.initData = await api("POST", "/api/init-month", {
+                        month: state.month,
+                    });
+                    state.month = state.initData.month;
+                    showInitResult();
+                } catch (e) {
+                    document.getElementById("initResult").innerHTML =
+                        `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
+                } finally {
+                    setLoading(false);
+                    document.getElementById("initBtn").innerHTML = "Initialize";
+                }
+            }
 
-function showInitResult() {
-  const d = state.initData;
-  let html = '';
+            function showInitResult() {
+                const d = state.initData;
+                let html = "";
 
-  if (d.warnings && d.warnings.length) {
-    html += d.warnings.map(w => `<div class="alert alert-warning">⚠ ${esc(w)}</div>`).join('');
-  }
+                if (d.warnings && d.warnings.length) {
+                    html += d.warnings
+                        .map(
+                            (w) =>
+                                `<div class="alert alert-warning">⚠ ${esc(w)}</div>`,
+                        )
+                        .join("");
+                }
 
-  const holidays = Object.entries(d.holidays || {});
-  if (holidays.length) {
-    html += `<h3>Holidays (${holidays.length})</h3><div style="margin-bottom:16px">`;
-    holidays.forEach(([date, name]) => {
-      html += `<span class="badge badge-holiday" style="margin:2px">${esc(formatDate(date))} — ${esc(name)}</span> `;
-    });
-    html += `</div>`;
-  } else {
-    html += `<p>No holidays found for this month.</p>`;
-  }
+                const holidays = Object.entries(d.holidays || {});
+                if (holidays.length) {
+                    html += `<h3>Holidays (${holidays.length})</h3><div style="margin-bottom:16px">`;
+                    holidays.forEach(([date, name]) => {
+                        html += `<span class="badge badge-holiday" style="margin:2px">${esc(formatDate(date))} — ${esc(name)}</span> `;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<p>No holidays found for this month.</p>`;
+                }
 
-  const abs = d.existing_absences || [];
-  if (abs.length) {
-    html += `<h3>Existing Absences (${abs.length})</h3>`;
-    abs.forEach(a => {
-      html += `<div class="absence-item"><div><span class="badge badge-absence">${esc(a.event_name)}</span> <span style="margin-left:8px">${esc(a.start)}${a.end !== a.start ? ' → ' + esc(a.end) : ''}</span></div><span style="color:var(--muted)">${(a.work_days || []).length}d</span></div>`;
-    });
-  }
+                const abs = d.existing_absences || [];
+                if (abs.length) {
+                    html += `<h3>Existing Absences (${abs.length})</h3>`;
+                    abs.forEach((a) => {
+                        html += `<div class="absence-item"><div><span class="badge badge-absence">${esc(a.event_name)}</span> <span style="margin-left:8px">${esc(a.start)}${a.end !== a.start ? " → " + esc(a.end) : ""}</span></div><span style="color:var(--muted)">${(a.work_days || []).length}d</span></div>`;
+                    });
+                }
 
-  document.getElementById('initResult').innerHTML = html;
-  const nb = document.getElementById('nextBtn1');
-  if (nb) nb.disabled = false;
-}
+                document.getElementById("initResult").innerHTML = html;
+                const nb = document.getElementById("nextBtn1");
+                if (nb) nb.disabled = false;
+            }
 
-// --- Step 2: Add Absences ---
-function renderStep2() {
-  const card = document.getElementById('card');
-  let html = `<h2>Days Off This Month</h2>`;
+            // --- Step 2: Add Absences ---
+            function renderStep2() {
+                const card = document.getElementById("card");
+                let html = `<h2>Days Off This Month</h2>`;
 
-  // Show existing absences from init
-  const existing = (state.initData && state.initData.existing_absences) || [];
-  if (existing.length) {
-    html += `<div class="alert alert-info">ℹ ${existing.length} existing absence(s) already booked — these will be skipped automatically.</div>`;
-  }
+                // Show existing absences from init
+                const existing =
+                    (state.initData && state.initData.existing_absences) || [];
+                if (existing.length) {
+                    html += `<div class="alert alert-info">ℹ ${existing.length} existing absence(s) already booked — these will be skipped automatically.</div>`;
+                }
 
-  // Current absences list
-  html += `<div id="absencesList"></div>`;
+                // Current absences list
+                html += `<div id="absencesList"></div>`;
 
-  // Add absence UI
-  html += `<button class="btn-primary" id="addAbsBtn" onclick="showAddAbsence()" style="margin-bottom:16px">+ Add Absence</button>`;
-  html += `<div id="addAbsArea"></div>`;
+                // Add absence UI
+                html += `<button class="btn-primary" id="addAbsBtn" onclick="showAddAbsence()" style="margin-bottom:16px">+ Add Absence</button>`;
+                html += `<div id="addAbsArea"></div>`;
 
-  html += `<div class="btn-row"><button class="btn-secondary" onclick="navigate(1)">← Back</button>
+                html += `<div class="btn-row"><button class="btn-secondary" onclick="navigate(1)">← Back</button>
     <div class="btn-row-right">
       <button class="btn-secondary" onclick="navigate(3)">Skip</button>
       <button class="btn-primary" onclick="navigate(3)">Next →</button>
     </div></div>`;
 
-  card.innerHTML = html;
-  renderAbsencesList();
-}
+                card.innerHTML = html;
+                renderAbsencesList();
+            }
 
-function renderAbsencesList() {
-  const el = document.getElementById('absencesList');
-  if (!el) return;
-  if (!state.absences.length) {
-    el.innerHTML = '<p style="margin-bottom:16px">No absences added yet.</p>';
-    return;
-  }
-  let html = `<h3>Planned Absences</h3>`;
-  state.absences.forEach((a, i) => {
-    html += `<div class="absence-item">
+            function renderAbsencesList() {
+                const el = document.getElementById("absencesList");
+                if (!el) return;
+                if (!state.absences.length) {
+                    el.innerHTML =
+                        '<p style="margin-bottom:16px">No absences added yet.</p>';
+                    return;
+                }
+                let html = `<h3>Planned Absences</h3>`;
+                state.absences.forEach((a, i) => {
+                    html += `<div class="absence-item">
       <div><span class="badge badge-absence">${esc(a.event_name)}</span>
-        <span style="margin-left:8px">${esc(a.start)}${a.end && a.end !== a.start ? ' → ' + esc(a.end) : ''}</span>
-        ${a.note ? `<span style="color:var(--muted);margin-left:8px">— ${esc(a.note)}</span>` : ''}
+        <span style="margin-left:8px">${esc(a.start)}${a.end && a.end !== a.start ? " → " + esc(a.end) : ""}</span>
+        ${a.note ? `<span style="color:var(--muted);margin-left:8px">— ${esc(a.note)}</span>` : ""}
         <span style="color:var(--muted);margin-left:8px">(${(a.work_days || []).length} work days)</span>
       </div>
       <button class="remove-btn" onclick="removeAbsence(${i})" title="Remove">✕</button>
     </div>`;
-  });
-  el.innerHTML = html;
-}
+                });
+                el.innerHTML = html;
+            }
 
-function removeAbsence(i) {
-  state.absences.splice(i, 1);
-  renderAbsencesList();
-}
+            function removeAbsence(i) {
+                state.absences.splice(i, 1);
+                renderAbsencesList();
+            }
 
-async function showAddAbsence() {
-  const area = document.getElementById('addAbsArea');
-  if (!state.events) {
-    area.innerHTML = '<div class="spinner spinner-lg"></div>';
-    try {
-      state.events = await api('GET', '/api/events');
-    } catch (e) {
-      area.innerHTML = `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
-      return;
-    }
-  }
+            async function showAddAbsence() {
+                const area = document.getElementById("addAbsArea");
+                if (!state.events) {
+                    area.innerHTML = '<div class="spinner spinner-lg"></div>';
+                    try {
+                        state.events = await api("GET", "/api/events");
+                    } catch (e) {
+                        area.innerHTML = `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
+                        return;
+                    }
+                }
 
-  let html = `<div class="add-absence-form"><h3>Select Event Type</h3><div class="event-list" id="eventList">`;
-  (state.events || []).forEach((ev, i) => {
-    html += `<div class="event-card" data-idx="${i}" onclick="selectEvent(${i})">${esc(ev.name || ev.event_name || ev.id)}</div>`;
-  });
-  html += `</div><div id="eventForm"></div></div>`;
-  area.innerHTML = html;
-}
+                let html = `<div class="add-absence-form"><h3>Select Event Type</h3><div class="event-list" id="eventList">`;
+                (state.events || []).forEach((ev, i) => {
+                    html += `<div class="event-card" data-idx="${i}" onclick="selectEvent(${i})">${esc(ev.name || ev.event_name || ev.id)}</div>`;
+                });
+                html += `</div><div id="eventForm"></div></div>`;
+                area.innerHTML = html;
+            }
 
-let selectedEvent = null;
+            let selectedEvent = null;
 
-function selectEvent(i) {
-  selectedEvent = state.events[i];
-  document.querySelectorAll('.event-card').forEach((c, j) => c.classList.toggle('selected', j === i));
+            function selectEvent(i) {
+                selectedEvent = state.events[i];
+                document
+                    .querySelectorAll(".event-card")
+                    .forEach((c, j) => c.classList.toggle("selected", j === i));
 
-  const form = document.getElementById('eventForm');
-  form.innerHTML = `
+                const form = document.getElementById("eventForm");
+                form.innerHTML = `
     <div class="field"><label>Dates (e.g. "3-5, 14" or "2025-06-03")</label>
       <div style="display:flex;gap:8px">
         <input type="text" id="dateExpr" placeholder="3-5, 14" style="flex:1" />
@@ -634,80 +777,109 @@ function selectEvent(i) {
       <input type="text" id="absComment" style="width:100%" /></div>
     <button class="btn-primary" id="confirmAddBtn" disabled onclick="confirmAdd()">Add</button>
   `;
-}
+            }
 
-let parsedWorkDays = null;
+            let parsedWorkDays = null;
 
-async function parseDates() {
-  const expr = document.getElementById('dateExpr').value;
-  if (!expr.trim()) return;
-  const pr = document.getElementById('parsedResult');
-  pr.innerHTML = '<span class="spinner"></span>';
-  parsedWorkDays = null;
+            async function parseDates() {
+                const expr = document.getElementById("dateExpr").value;
+                if (!expr.trim()) return;
+                const pr = document.getElementById("parsedResult");
+                pr.innerHTML = '<span class="spinner"></span>';
+                parsedWorkDays = null;
 
-  try {
-    const res = await api('POST', '/api/parse-dates', { expression: expr, month: state.month });
-    parsedWorkDays = res.work_days || res.dates || [];
-    const start = parsedWorkDays.length ? parsedWorkDays[0] : null;
-    const end = parsedWorkDays.length ? parsedWorkDays[parsedWorkDays.length - 1] : null;
-    pr.innerHTML = `<div class="alert alert-success" style="margin-bottom:12px">✓ ${parsedWorkDays.length} work day(s): ${parsedWorkDays.map(d => formatDate(d)).join(', ')}</div>`;
-    document.getElementById('confirmAddBtn').disabled = false;
-  } catch (e) {
-    pr.innerHTML = `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
-  }
-}
+                try {
+                    const res = await api("POST", "/api/parse-dates", {
+                        raw: expr,
+                        month_start: state.initData.month_start,
+                        month_end: state.initData.month_end,
+                    });
+                    if (res.errors && res.errors.length) {
+                        pr.innerHTML = `<div class="alert alert-warning" style="margin-bottom:12px">⚠ ${res.errors.map(esc).join(", ")}</div>`;
+                        if (!res.ranges || !res.ranges.length) return;
+                    }
+                    // Flatten all work_days from all ranges
+                    parsedWorkDays = [];
+                    for (const r of res.ranges || []) {
+                        for (const d of r.work_days || []) {
+                            if (!parsedWorkDays.includes(d))
+                                parsedWorkDays.push(d);
+                        }
+                    }
+                    if (!parsedWorkDays.length) {
+                        pr.innerHTML += `<div class="alert alert-warning">No work days found in those dates (weekends only?)</div>`;
+                        return;
+                    }
+                    parsedRanges = res.ranges;
+                    pr.innerHTML = `<div class="alert alert-success" style="margin-bottom:12px">✓ ${parsedWorkDays.length} work day(s): ${parsedWorkDays.map((d) => formatDate(d)).join(", ")}</div>`;
+                    document.getElementById("confirmAddBtn").disabled = false;
+                } catch (e) {
+                    pr.innerHTML = `<div class="alert alert-error">⚠ ${esc(e.message)}</div>`;
+                }
+            }
 
-function confirmAdd() {
-  if (!selectedEvent || !parsedWorkDays || !parsedWorkDays.length) return;
-  const note = document.getElementById('absComment').value || '';
-  state.absences.push({
-    event_id: selectedEvent.id || selectedEvent.event_id,
-    event_name: selectedEvent.name || selectedEvent.event_name,
-    start: parsedWorkDays[0],
-    end: parsedWorkDays[parsedWorkDays.length - 1],
-    note,
-    work_days: parsedWorkDays,
-  });
-  selectedEvent = null;
-  parsedWorkDays = null;
-  document.getElementById('addAbsArea').innerHTML = '';
-  renderAbsencesList();
-}
+            function confirmAdd() {
+                if (!selectedEvent || !parsedWorkDays || !parsedWorkDays.length)
+                    return;
+                const note = document.getElementById("absComment").value || "";
+                state.absences.push({
+                    event_id: selectedEvent.id || selectedEvent.event_id,
+                    event_name: selectedEvent.name || selectedEvent.event_name,
+                    start: parsedWorkDays[0],
+                    end: parsedWorkDays[parsedWorkDays.length - 1],
+                    note,
+                    work_days: parsedWorkDays,
+                });
+                selectedEvent = null;
+                parsedWorkDays = null;
+                document.getElementById("addAbsArea").innerHTML = "";
+                renderAbsencesList();
+            }
 
-// --- Step 3: Preview Plan ---
-async function renderStep3() {
-  const card = document.getElementById('card');
-  card.innerHTML = '<h2>Preview Plan</h2><div class="spinner spinner-lg"></div><p style="text-align:center">Generating plan…</p>';
+            // --- Step 3: Preview Plan ---
+            async function renderStep3() {
+                const card = document.getElementById("card");
+                card.innerHTML =
+                    '<h2>Preview Plan</h2><div class="spinner spinner-lg"></div><p style="text-align:center">Generating plan…</p>';
 
-  // Build skip_dates: holidays + existing absence dates + new absence dates
-  const skipDates = new Set();
-  if (state.initData) {
-    Object.keys(state.initData.holidays || {}).forEach(d => skipDates.add(d));
-    (state.initData.existing_absences || []).forEach(a => (a.work_days || []).forEach(d => skipDates.add(d)));
-  }
-  state.absences.forEach(a => (a.work_days || []).forEach(d => skipDates.add(d)));
+                // Build skip_dates: holidays + existing absence dates + new absence dates
+                const skipDates = new Set();
+                if (state.initData) {
+                    Object.keys(state.initData.holidays || {}).forEach((d) =>
+                        skipDates.add(d),
+                    );
+                    (state.initData.existing_absences || []).forEach((a) =>
+                        (a.work_days || []).forEach((d) => skipDates.add(d)),
+                    );
+                }
+                state.absences.forEach((a) =>
+                    (a.work_days || []).forEach((d) => skipDates.add(d)),
+                );
 
-  try {
-    state.previewData = await api('POST', '/api/preview', {
-      absences: state.absences,
-      skip_dates: [...skipDates],
-    });
-    showPreview();
-  } catch (e) {
-    card.innerHTML = `<h2>Preview Plan</h2><div class="alert alert-error">⚠ ${esc(e.message)}</div>
+                try {
+                    state.previewData = await api("POST", "/api/preview", {
+                        month_start: state.initData.month_start,
+                        month_end: state.initData.month_end,
+                        subsidiary_id: state.initData.subsidiary_id,
+                        absences: state.absences,
+                        skip_dates: [...skipDates],
+                    });
+                    showPreview();
+                } catch (e) {
+                    card.innerHTML = `<h2>Preview Plan</h2><div class="alert alert-error">⚠ ${esc(e.message)}</div>
       <div class="btn-row"><button class="btn-secondary" onclick="navigate(2)">← Back</button><button class="btn-primary" onclick="renderStep3()">Retry</button></div>`;
-  }
-}
+                }
+            }
 
-function showPreview() {
-  const d = state.previewData;
-  const s = d.summary || {};
-  const card = document.getElementById('card');
+            function showPreview() {
+                const d = state.previewData;
+                const s = d.summary || {};
+                const card = document.getElementById("card");
 
-  let html = `<h2>Preview Plan</h2>`;
+                let html = `<h2>Preview Plan</h2>`;
 
-  // Stats
-  html += `<div class="stats-grid">
+                // Stats
+                html += `<div class="stats-grid">
     <div class="stat-card"><div class="stat-value">${s.total_weekdays || 0}</div><div class="stat-label">Weekdays</div></div>
     <div class="stat-card"><div class="stat-value">${s.holiday_weekdays || 0}</div><div class="stat-label">Holidays</div></div>
     <div class="stat-card"><div class="stat-value">${s.absence_days || 0}</div><div class="stat-label">Days Off</div></div>
@@ -716,121 +888,129 @@ function showPreview() {
     <div class="stat-card"><div class="stat-value">${s.total_ops || 0}</div><div class="stat-label">API Ops</div></div>
   </div>`;
 
-  // Holidays
-  const holidays = Object.entries((state.initData && state.initData.holidays) || {});
-  if (holidays.length) {
-    html += `<div class="section"><h3>🗓 Holidays</h3>`;
-    holidays.forEach(([date, name]) => {
-      html += `<span class="badge badge-holiday" style="margin:2px">${esc(formatDate(date))} — ${esc(name)}</span> `;
-    });
-    html += `</div>`;
-  }
+                // Holidays
+                const holidays = Object.entries(
+                    (state.initData && state.initData.holidays) || {},
+                );
+                if (holidays.length) {
+                    html += `<div class="section"><h3>🗓 Holidays</h3>`;
+                    holidays.forEach(([date, name]) => {
+                        html += `<span class="badge badge-holiday" style="margin:2px">${esc(formatDate(date))} — ${esc(name)}</span> `;
+                    });
+                    html += `</div>`;
+                }
 
-  // Absences
-  const absences = d.absences || [];
-  if (absences.length) {
-    html += `<div class="section"><h3>🏖 Absences</h3>`;
-    absences.forEach(a => {
-      html += `<div class="absence-item"><div><span class="badge badge-absence">${esc(a.event_name)}</span>
+                // Absences
+                const absences = d.absences || [];
+                if (absences.length) {
+                    html += `<div class="section"><h3>🏖 Absences</h3>`;
+                    absences.forEach((a) => {
+                        html += `<div class="absence-item"><div><span class="badge badge-absence">${esc(a.event_name)}</span>
         <span style="margin-left:8px">${esc(a.start)} → ${esc(a.end)}</span>
-        ${a.note ? `<span style="color:var(--muted);margin-left:8px">— ${esc(a.note)}</span>` : ''}
+        ${a.note ? `<span style="color:var(--muted);margin-left:8px">— ${esc(a.note)}</span>` : ""}
       </div><span style="color:var(--muted)">${(a.work_days || []).length}d</span></div>`;
-    });
-    html += `</div>`;
-  }
+                    });
+                    html += `</div>`;
+                }
 
-  // Time entries grouped by service
-  const entries = d.time_entries || [];
-  if (entries.length) {
-    const byService = {};
-    entries.forEach(e => {
-      const sn = e.service_name || 'Unknown';
-      if (!byService[sn]) byService[sn] = [];
-      byService[sn].push(e);
-    });
+                // Time entries grouped by service
+                const entries = d.time_entries || [];
+                if (entries.length) {
+                    const byService = {};
+                    entries.forEach((e) => {
+                        const sn = e.service_name || "Unknown";
+                        if (!byService[sn]) byService[sn] = [];
+                        byService[sn].push(e);
+                    });
 
-    html += `<div class="section"><h3>⏱ Time Entries (${entries.length})</h3>`;
-    for (const [svc, items] of Object.entries(byService)) {
-      html += `<p style="color:var(--text);font-weight:500;margin-bottom:4px">${esc(svc)}</p>`;
-      html += `<div class="table-wrap"><table><thead><tr>
+                    html += `<div class="section"><h3>⏱ Time Entries (${entries.length})</h3>`;
+                    for (const [svc, items] of Object.entries(byService)) {
+                        html += `<p style="color:var(--text);font-weight:500;margin-bottom:4px">${esc(svc)}</p>`;
+                        html += `<div class="table-wrap"><table><thead><tr>
         <th>Date</th><th>Day</th><th>Time</th><th>Task</th><th>Note</th>
       </tr></thead><tbody>`;
-      items.forEach(e => {
-        const dt = new Date(e.date + 'T00:00:00');
-        const day = dt.toLocaleDateString('en-US', { weekday: 'short' });
-        html += `<tr><td>${esc(e.date)}</td><td>${day}</td><td>${esc(e.time_display || (e.time / 60 + 'h'))}</td><td style="color:var(--muted)">${esc(e.task_id || '—')}</td><td style="color:var(--muted)">${esc(e.note || '')}</td></tr>`;
-      });
-      html += `</tbody></table></div>`;
-    }
+                        items.forEach((e) => {
+                            const dt = new Date(e.date + "T00:00:00");
+                            const day = dt.toLocaleDateString("en-US", {
+                                weekday: "short",
+                            });
+                            html += `<tr><td>${esc(e.date)}</td><td>${day}</td><td>${esc(e.time_display || e.time / 60 + "h")}</td><td style="color:var(--muted)">${esc(e.task_id || "—")}</td><td style="color:var(--muted)">${esc(e.note || "")}</td></tr>`;
+                        });
+                        html += `</tbody></table></div>`;
+                    }
 
-    if (d.te_skipped) {
-      html += `<div class="alert alert-info">ℹ ${d.te_skipped} duplicate time entries skipped.</div>`;
-    }
-    html += `</div>`;
-  }
+                    if (d.te_skipped) {
+                        html += `<div class="alert alert-info">ℹ ${d.te_skipped} duplicate time entries skipped.</div>`;
+                    }
+                    html += `</div>`;
+                }
 
-  html += `<div class="btn-row"><button class="btn-secondary" onclick="navigate(2)">← Back</button>
-    <button class="btn-highlight" onclick="navigate(4)">Execute ${s.total_ops || ''} operations →</button></div>`;
+                html += `<div class="btn-row"><button class="btn-secondary" onclick="navigate(2)">← Back</button>
+    <button class="btn-highlight" onclick="navigate(4)">Execute ${s.total_ops || ""} operations →</button></div>`;
 
-  card.innerHTML = html;
-}
+                card.innerHTML = html;
+            }
 
-// --- Step 4: Execute ---
-async function renderStep4() {
-  const card = document.getElementById('card');
-  const d = state.previewData;
-  const totalOps = (d.summary && d.summary.total_ops) || 0;
+            // --- Step 4: Execute ---
+            async function renderStep4() {
+                const card = document.getElementById("card");
+                const d = state.previewData;
+                const totalOps = (d.summary && d.summary.total_ops) || 0;
 
-  card.innerHTML = `<h2>Executing…</h2>
+                card.innerHTML = `<h2>Executing…</h2>
     <p>Creating ${totalOps} entries…</p>
     <div class="spinner spinner-lg"></div>
     <div id="execResults" class="scroll-area" style="margin-top:16px"></div>`;
 
-  try {
-    state.executeResults = await api('POST', '/api/execute', {
-      absences: d.absences || [],
-      time_entries: d.time_entries || [],
-    });
-    showExecuteResults();
-  } catch (e) {
-    card.innerHTML = `<h2>Execution Failed</h2><div class="alert alert-error">⚠ ${esc(e.message)}</div>
+                try {
+                    state.executeResults = await api("POST", "/api/execute", {
+                        absences: d.absences || [],
+                        time_entries: d.time_entries || [],
+                    });
+                    showExecuteResults();
+                } catch (e) {
+                    card.innerHTML = `<h2>Execution Failed</h2><div class="alert alert-error">⚠ ${esc(e.message)}</div>
       <div class="btn-row"><button class="btn-secondary" onclick="navigate(3)">← Back</button><button class="btn-primary" onclick="renderStep4()">Retry</button></div>`;
-  }
-}
+                }
+            }
 
-function showExecuteResults() {
-  const r = state.executeResults;
-  const results = r.results || r.items || [];
-  const created = results.filter(i => i.status === 'ok' || i.success).length;
-  const failed = results.length - created;
+            function showExecuteResults() {
+                const r = state.executeResults;
+                const results = r.results || r.items || [];
+                const created = results.filter(
+                    (i) => i.status === "ok" || i.success,
+                ).length;
+                const failed = results.length - created;
 
-  let html = `<h2>Execution Complete</h2>`;
-  html += `<div class="stats-grid" style="margin-bottom:20px">
+                let html = `<h2>Execution Complete</h2>`;
+                html += `<div class="stats-grid" style="margin-bottom:20px">
     <div class="stat-card"><div class="stat-value" style="color:var(--success)">${created}</div><div class="stat-label">Created</div></div>
-    <div class="stat-card"><div class="stat-value" style="color:${failed ? 'var(--error)' : 'var(--muted)'}">${failed}</div><div class="stat-label">Failed</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:${failed ? "var(--error)" : "var(--muted)"}">${failed}</div><div class="stat-label">Failed</div></div>
   </div>`;
 
-  if (results.length) {
-    html += `<div class="scroll-area">`;
-    results.forEach(item => {
-      const ok = item.status === 'ok' || item.success;
-      html += `<div class="result-item"><span>${ok ? '✅' : '❌'}</span><span>${esc(item.label || item.description || item.type || '—')}</span>
-        ${!ok && item.error ? `<span style="color:var(--error);margin-left:auto;font-size:12px">${esc(item.error)}</span>` : ''}</div>`;
-    });
-    html += `</div>`;
-  }
+                if (results.length) {
+                    html += `<div class="scroll-area">`;
+                    results.forEach((item) => {
+                        const ok = item.status === "ok" || item.success;
+                        html += `<div class="result-item"><span>${ok ? "✅" : "❌"}</span><span>${esc(item.label || item.description || item.type || "—")}</span>
+        ${!ok && item.error ? `<span style="color:var(--error);margin-left:auto;font-size:12px">${esc(item.error)}</span>` : ""}</div>`;
+                    });
+                    html += `</div>`;
+                }
 
-  html += `<div class="btn-row"><span></span><button class="btn-success" onclick="navigate(5)">Continue →</button></div>`;
-  document.getElementById('card').innerHTML = html;
-}
+                html += `<div class="btn-row"><span></span><button class="btn-success" onclick="navigate(5)">Continue →</button></div>`;
+                document.getElementById("card").innerHTML = html;
+            }
 
-// --- Step 5: Done ---
-function renderStep5() {
-  const r = state.executeResults || {};
-  const results = r.results || r.items || [];
-  const created = results.filter(i => i.status === 'ok' || i.success).length;
+            // --- Step 5: Done ---
+            function renderStep5() {
+                const r = state.executeResults || {};
+                const results = r.results || r.items || [];
+                const created = results.filter(
+                    (i) => i.status === "ok" || i.success,
+                ).length;
 
-  document.getElementById('card').innerHTML = `
+                document.getElementById("card").innerHTML = `
     <div class="done-center">
       <div class="checkmark">✅</div>
       <h2 style="margin-bottom:8px">All Done!</h2>
@@ -839,10 +1019,10 @@ function renderStep5() {
         <button class="btn-success" onclick="window.close()">Close Window</button>
       </div>
     </div>`;
-}
+            }
 
-// --- Init ---
-navigate(1);
-</script>
-</body>
+            // --- Init ---
+            navigate(1);
+        </script>
+    </body>
 </html>
