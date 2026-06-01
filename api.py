@@ -145,7 +145,7 @@ def get_config():
 
     person_name = ""
     try:
-        body = api_get("user")
+        body = api_get(f"people/{PERSON_ID}")
         attrs = body.get("data", {}).get("attributes", {})
         person_name = (
             f"{attrs.get('first_name', '')} {attrs.get('last_name', '')}".strip()
