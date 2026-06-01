@@ -977,9 +977,47 @@
                 }
 
                 html += `<div class="btn-row"><button class="btn-secondary" onclick="navigate(2)">← Back</button>
-    <button class="btn-highlight" onclick="navigate(4)">Execute ${s.total_ops || ""} operations →</button></div>`;
+    <div class="btn-row-right">
+      <button class="btn-secondary" onclick="doDryRun()">Dry Run</button>
+      <button class="btn-highlight" onclick="navigate(4)">Execute ${s.total_ops || ""} operations →</button>
+    </div></div>`;
 
                 card.innerHTML = html;
+            }
+
+            // --- Dry Run ---
+            function doDryRun() {
+                const d = state.previewData;
+                const results = [];
+                for (const a of d.absences || []) {
+                    results.push({
+                        type: "absence",
+                        label: `Absence ${a.start} → ${a.end}`,
+                        status: "ok",
+                        id: "dry-run",
+                        error: null,
+                    });
+                }
+                for (const te of d.time_entries || []) {
+                    results.push({
+                        type: "time_entry",
+                        label: `TE ${te.date} ${te.time_display}`,
+                        status: "ok",
+                        id: "dry-run",
+                        error: null,
+                    });
+                }
+                state.executeResults = {
+                    absence_ok: (d.absences || []).length,
+                    absence_fail: 0,
+                    te_ok: (d.time_entries || []).length,
+                    te_fail: 0,
+                    results,
+                    dry_run: true,
+                };
+                state.step = 4;
+                renderProgress();
+                showExecuteResults();
             }
 
             // --- Step 4: Execute ---
@@ -1013,7 +1051,10 @@
                 ).length;
                 const failed = results.length - created;
 
-                let html = `<h2>Execution Complete</h2>`;
+                let html = `<h2>${r.dry_run ? "🔒 Dry Run Complete" : "Execution Complete"}</h2>`;
+                if (r.dry_run) {
+                    html += `<div class="alert alert-warning">🔒 Dry run — nothing was actually created. Go back to execute for real.</div>`;
+                }
                 html += `<div class="stats-grid" style="margin-bottom:20px">
     <div class="stat-card"><div class="stat-value" style="color:var(--success)">${created}</div><div class="stat-label">Created</div></div>
     <div class="stat-card"><div class="stat-value" style="color:${failed ? "var(--error)" : "var(--muted)"}">${failed}</div><div class="stat-label">Failed</div></div>
@@ -1041,11 +1082,13 @@
                     (i) => i.status === "ok" || i.success,
                 ).length;
 
+                const isDry = r.dry_run;
+
                 document.getElementById("card").innerHTML = `
     <div class="done-center">
-      <div class="checkmark">✅</div>
-      <h2 style="margin-bottom:8px">All Done!</h2>
-      <p>${created} entries created for <strong>${esc(state.month)}</strong></p>
+      <div class="checkmark">${isDry ? "🔒" : "✅"}</div>
+      <h2 style="margin-bottom:8px">${isDry ? "Dry Run Complete" : "All Done!"}</h2>
+      <p>${isDry ? `${created} entries would be created` : `${created} entries created`} for <strong>${esc(state.month)}</strong></p>
       <div class="btn-row" style="justify-content:center;margin-top:32px">
         <button class="btn-success" onclick="window.close()">Close Window</button>
       </div>
