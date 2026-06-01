@@ -606,8 +606,9 @@
   </div>`;
 
                 html += `<div class="field"><label>Target Month</label>
-    <input type="month" id="monthInput" value="${esc(state.month)}" style="width:200px" /></div>`;
+    <input type="month" id="monthInput" value="${esc(state.month)}" style="width:200px" onchange="onMonthChange()" /></div>`;
 
+                html += `<div id="holidayPreview"></div>`;
                 html += `<div id="initResult"></div>`;
 
                 html += `<div class="btn-row"><span></span><div class="btn-row-right">`;
@@ -617,6 +618,41 @@
                 card.innerHTML = html;
 
                 if (state.initData) showInitResult();
+                fetchHolidaysPreview(state.month);
+            }
+
+            async function fetchHolidaysPreview(month) {
+                const el = document.getElementById("holidayPreview");
+                if (!el || !month) return;
+                el.innerHTML =
+                    '<span class="spinner"></span> Loading holidays…';
+                try {
+                    const holidays = await api(
+                        "GET",
+                        `/api/holidays?month=${encodeURIComponent(month)}`,
+                    );
+                    state.holidaysPreview = holidays;
+                    const entries = Object.entries(holidays || {});
+                    if (entries.length) {
+                        let html = `<h3>Holidays (${entries.length})</h3><div style="margin-bottom:16px">`;
+                        entries.forEach(([date, name]) => {
+                            html += `<span class="badge badge-holiday" style="margin:2px">${esc(formatDate(date))} — ${esc(name)}</span> `;
+                        });
+                        html += `</div>`;
+                        el.innerHTML = html;
+                    } else {
+                        el.innerHTML = "<p>No holidays this month.</p>";
+                    }
+                } catch (e) {
+                    el.innerHTML = `<p style="color:var(--muted)">Could not load holidays.</p>`;
+                }
+            }
+
+            function onMonthChange() {
+                const monthVal = document.getElementById("monthInput").value;
+                state.month = monthVal;
+                state.initData = null;
+                fetchHolidaysPreview(monthVal);
             }
 
             async function doInitAndNext() {

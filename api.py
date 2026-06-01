@@ -210,6 +210,14 @@ def init_month(body: InitMonthRequest):
     }
 
 
+@app.get("/api/holidays")
+def get_holidays(month: str):
+    month_start, month_end = _month_bounds(month)
+    holiday_calendar_id = resolve_holiday_calendar_id(COUNTRY_CODE)
+    holidays = fetch_holidays(month_start, month_end, holiday_calendar_id)
+    return {str(k): v for k, v in holidays.items()}
+
+
 @app.get("/api/events")
 def get_events():
     events = fetch_events()
