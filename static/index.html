@@ -703,17 +703,6 @@
                         .join("");
                 }
 
-                const holidays = Object.entries(d.holidays || {});
-                if (holidays.length) {
-                    html += `<h3>Holidays (${holidays.length})</h3><div style="margin-bottom:16px">`;
-                    holidays.forEach(([date, name]) => {
-                        html += `<span class="badge badge-holiday" style="margin:2px">${esc(formatDate(date))} — ${esc(name)}</span> `;
-                    });
-                    html += `</div>`;
-                } else {
-                    html += `<p>No holidays found for this month.</p>`;
-                }
-
                 const abs = d.existing_absences || [];
                 if (abs.length) {
                     html += `<h3>Existing Absences (${abs.length})</h3>`;
