@@ -58,6 +58,15 @@ def resource_path(relative):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative)
 
 
+class Api:
+    def __init__(self, window_ref):
+        self._window_ref = window_ref
+
+    def close_window(self):
+        if self._window_ref:
+            self._window_ref[0].destroy()
+
+
 def main():
     # Ensure the working directory is correct so api module and .env are found
     os.chdir(os.path.dirname(os.path.abspath(resource_path("api.py"))))
@@ -77,7 +86,9 @@ def main():
         width=900,
         height=700,
         resizable=True,
+        js_api=Api(window_ref=[]),
     )
+    window.js_api._window_ref.append(window)
     webview.start()
 
     server.stop()

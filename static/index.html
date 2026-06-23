@@ -580,6 +580,14 @@
                 });
             }
 
+            function closeApp() {
+                if (window.pywebview && window.pywebview.api) {
+                    window.pywebview.api.close_window();
+                } else {
+                    window.close();
+                }
+            }
+
             // --- Step 1: Configure Month ---
             async function renderStep1() {
                 const card = document.getElementById("card");
@@ -1125,7 +1133,7 @@
       <p>${doneMsg}</p>
       ${hint}
       <div class="btn-row" style="justify-content:center;margin-top:32px">
-        <button class="btn-success" onclick="window.close()">Close Window</button>
+        <button class="btn-success" onclick="closeApp()">Close Window</button>
       </div>
     </div>`;
             }
