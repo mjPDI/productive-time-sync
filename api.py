@@ -73,6 +73,7 @@ class AbsenceInput(BaseModel):
 class PreviewRequest(BaseModel):
     month_start: str
     month_end: str
+    effective_end: Optional[str] = None
     subsidiary_id: Optional[str] = None
     absences: list[AbsenceInput] = []
     skip_dates: list[str] = []
@@ -195,17 +196,53 @@ def init_month(body: InitMonthRequest):
     if holiday_calendar_id is None and COUNTRY_CODE:
         warnings.append(f"holiday calendar not found for {COUNTRY_CODE}")
 
+    # Clamp effective end to today so we only fill days that have passed
+    today = date.today()
+    effective_end = min(month_end, today)
+
     holidays = fetch_holidays(month_start, month_end, holiday_calendar_id)
-    existing = fetch_existing_absences(month_start, month_end, PERSON_ID)
+    existing_absences = fetch_existing_absences(month_start, month_end, PERSON_ID)
+
+    # Compute filled-day stats from existing time entries
+    existing_te = api_get_all(
+        "time_entries",
+        {
+            "filter[person_id]": PERSON_ID,
+            "filter[after]": (month_start - timedelta(days=1)).isoformat(),
+            "filter[before]": (effective_end + timedelta(days=1)).isoformat(),
+            "page[size]": 200,
+        },
+    )
+    filled_dates = set()
+    for te in existing_te:
+        d = te.get("attributes", {}).get("date")
+        if d:
+            filled_dates.add(d)
+
+    all_weekdays = weekdays_in_range(month_start, effective_end)
+    holiday_dates = set(holidays.keys())
+    absence_dates = set()
+    for a in existing_absences:
+        absence_dates.update(a.get("work_days", []))
+    work_days = [
+        d for d in all_weekdays if d not in holiday_dates and d not in absence_dates
+    ]
+    filled_count = sum(1 for d in work_days if d.isoformat() in filled_dates)
+    remaining_count = len(work_days) - filled_count
 
     return {
         "month": month_str,
         "month_start": str(month_start),
         "month_end": str(month_end),
+        "effective_end": str(effective_end),
+        "is_full_month": effective_end >= month_end,
         "subsidiary_id": subsidiary_id,
         "holiday_calendar_id": holiday_calendar_id,
         "holidays": {str(k): v for k, v in holidays.items()},
-        "existing_absences": [_serialize_absence(a) for a in existing],
+        "existing_absences": [_serialize_absence(a) for a in existing_absences],
+        "filled_days": filled_count,
+        "total_work_days": len(work_days),
+        "remaining_days": remaining_count,
         "warnings": warnings,
     }
 
@@ -247,19 +284,27 @@ def parse_dates(body: ParseDatesRequest):
 def preview(body: PreviewRequest):
     month_start = _date(body.month_start)
     month_end = _date(body.month_end)
+    # Use effective_end (clamped to today) for building time entries
+    effective_end = (
+        _date(body.effective_end)
+        if body.effective_end
+        else min(month_end, date.today())
+    )
     skip_dates = {_date(d) for d in body.skip_dates}
 
     bookings = fetch_budget_bookings(
         month_start, month_end, PERSON_ID, body.subsidiary_id
     )
-    planned_entries = build_time_entries(bookings, month_start, month_end, skip_dates)
+    planned_entries = build_time_entries(
+        bookings, month_start, effective_end, skip_dates
+    )
 
     existing_te = api_get_all(
         "time_entries",
         {
             "filter[person_id]": PERSON_ID,
             "filter[after]": (month_start - timedelta(days=1)).isoformat(),
-            "filter[before]": (month_end + timedelta(days=1)).isoformat(),
+            "filter[before]": (effective_end + timedelta(days=1)).isoformat(),
             "page[size]": 200,
         },
     )
@@ -283,7 +328,7 @@ def preview(body: PreviewRequest):
 
     absences_out = [a.model_dump() for a in body.absences]
 
-    all_weekdays = weekdays_in_range(month_start, month_end)
+    all_weekdays = weekdays_in_range(month_start, effective_end)
     holiday_weekdays = sum(
         1
         for d in skip_dates

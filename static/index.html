@@ -598,17 +598,18 @@
                 if (!state.month) state.month = autoMonth();
                 const c = state.config;
 
-                let html = `<h2>Configure Month</h2>`;
+                let html = `<h2>Time Sync</h2>`;
                 html += `<div class="config-grid">
     <span class="label">Person</span><span class="value">${esc(c.person_name || "")}${c.person_name ? " " : ""}(${esc(c.person_id || "—")})</span>
     <span class="label">Subsidiary</span><span class="value">${esc(c.subsidiary_name || "—")}</span>
     <span class="label">Country</span><span class="value">${esc(c.country_code || c.country || "—")}</span>
   </div>`;
 
-                html += `<div class="field"><label>Target Month</label>
+                html += `<div class="field"><label>Month</label>
     <input type="month" id="monthInput" value="${esc(state.month)}" style="width:200px" onchange="onMonthChange()" /></div>`;
 
                 html += `<div id="holidayPreview"></div>`;
+                html += `<div id="statusPreview"></div>`;
                 html += `<div id="initResult"></div>`;
 
                 html += `<div class="btn-row"><span></span><div class="btn-row-right">`;
@@ -618,7 +619,12 @@
                 card.innerHTML = html;
 
                 if (state.initData) showInitResult();
-                fetchHolidaysPreview(state.month);
+                fetchMonthPreview(state.month);
+            }
+
+            async function fetchMonthPreview(month) {
+                fetchHolidaysPreview(month);
+                fetchStatusPreview(month);
             }
 
             async function fetchHolidaysPreview(month) {
@@ -648,11 +654,19 @@
                 }
             }
 
+            async function fetchStatusPreview(month) {
+                const el = document.getElementById("statusPreview");
+                if (!el || !month) return;
+                el.innerHTML = "";
+                // We'll show status after init - for now show a lightweight hint
+                // The real status comes from init-month which we call on Next
+            }
+
             function onMonthChange() {
                 const monthVal = document.getElementById("monthInput").value;
                 state.month = monthVal;
                 state.initData = null;
-                fetchHolidaysPreview(monthVal);
+                fetchMonthPreview(monthVal);
             }
 
             async function doInitAndNext() {
@@ -714,7 +728,15 @@
             // --- Step 2: Add Absences ---
             function renderStep2() {
                 const card = document.getElementById("card");
-                let html = `<h2>Days Off This Month</h2>`;
+                const d = state.initData || {};
+                const effEnd = d.effective_end || d.month_end;
+                const isFull = d.is_full_month;
+
+                let html = `<h2>Days Off</h2>`;
+                html += `<div class="alert alert-info" style="margin-bottom:16px">📅 Filling: <strong>${esc(formatDate(d.month_start))} → ${esc(formatDate(effEnd))}</strong>`;
+                if (!isFull) html += ` (through today)`;
+                html += `<br>${d.filled_days || 0} of ${d.total_work_days || 0} work days filled — <strong>${d.remaining_days || 0} remaining</strong>`;
+                html += `</div>`;
 
                 // Show existing absences from init
                 const existing =
@@ -732,7 +754,6 @@
 
                 html += `<div class="btn-row"><button class="btn-secondary" onclick="navigate(1)">← Back</button>
     <div class="btn-row-right">
-      <button class="btn-secondary" onclick="navigate(3)">Skip</button>
       <button class="btn-primary" onclick="navigate(3)">Next →</button>
     </div></div>`;
 
@@ -891,6 +912,7 @@
                     state.previewData = await api("POST", "/api/preview", {
                         month_start: state.initData.month_start,
                         month_end: state.initData.month_end,
+                        effective_end: state.initData.effective_end,
                         subsidiary_id: state.initData.subsidiary_id,
                         absences: state.absences,
                         skip_dates: [...skipDates],
@@ -907,7 +929,13 @@
                 const s = d.summary || {};
                 const card = document.getElementById("card");
 
-                let html = `<h2>Preview Plan</h2>`;
+                let html = `<h2>Preview</h2>`;
+                const init = state.initData || {};
+                const effEnd = init.effective_end || init.month_end;
+                const isFull = init.is_full_month;
+                html += `<div class="alert alert-info" style="margin-bottom:16px">📅 <strong>${esc(formatDate(init.month_start))} → ${esc(formatDate(effEnd))}</strong>`;
+                if (!isFull) html += ` (through today)`;
+                html += `</div>`;
 
                 // Stats
                 html += `<div class="stats-grid">
@@ -1083,12 +1111,30 @@
                 ).length;
 
                 const isDry = r.dry_run;
+                const init = state.initData || {};
+                const isFull = init.is_full_month;
+                const effEnd = init.effective_end || init.month_end;
+
+                let doneMsg;
+                if (isDry) {
+                    doneMsg = `${created} entries would be created`;
+                } else if (isFull) {
+                    doneMsg = `${created} entries created for <strong>${esc(state.month)}</strong>`;
+                } else {
+                    doneMsg = `${created} entries created — you're caught up through <strong>${esc(formatDate(effEnd))}</strong>`;
+                }
+
+                let hint = "";
+                if (!isDry && !isFull) {
+                    hint = `<p style="color:var(--muted);margin-top:8px">Run again later to fill in the rest of the month.</p>`;
+                }
 
                 document.getElementById("card").innerHTML = `
     <div class="done-center">
       <div class="checkmark">${isDry ? "🔒" : "✅"}</div>
       <h2 style="margin-bottom:8px">${isDry ? "Dry Run Complete" : "All Done!"}</h2>
-      <p>${isDry ? `${created} entries would be created` : `${created} entries created`} for <strong>${esc(state.month)}</strong></p>
+      <p>${doneMsg}</p>
+      ${hint}
       <div class="btn-row" style="justify-content:center;margin-top:32px">
         <button class="btn-success" onclick="window.close()">Close Window</button>
       </div>
